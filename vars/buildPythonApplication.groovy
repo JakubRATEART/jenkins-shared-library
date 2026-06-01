@@ -38,7 +38,7 @@ def call(Map config = [:]) {
                         echo "Deploying ${containerName} to host port ${hostPort}..."
                         sh "docker stop ${containerName} || true"
                         sh "docker rm ${containerName} || true"
-                        sh "docker run -d --name ${containerName} -p ${hostPort}:${internalPort} ${appName}:latest"
+			sh "docker run -d --name ${containerName} -p ${hostPort}:${internalPort} ${appName}:latest"
                     }
                 }
             }

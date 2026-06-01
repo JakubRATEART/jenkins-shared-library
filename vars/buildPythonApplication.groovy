@@ -1,6 +1,6 @@
 // vars/buildPythonApplication.groovy
+// Inside vars/buildPythonApplication.groovy
 def call(Map config = [:]) {
-    // Read the inputs handed over by the application repo
     def appName = config.appName ?: 'default-app'
     def internalPort = config.port ?: '8080'
 
@@ -11,7 +11,7 @@ def call(Map config = [:]) {
             stage('Test') {
                 steps {
                     script {
-                        // The library handles containerizing the tests safely
+                        // The Python container ONLY lives for this specific test block!
                         docker.image('python:3.11-slim').inside {
                             echo "Checking python syntax for ${appName}..."
                             sh 'python3 -m py_compile *.py || true'
@@ -27,25 +27,26 @@ def call(Map config = [:]) {
                 }
             }
 
-	    stage('Deploy') {
-    		steps {
-        	    script {
-            		// Notice the 'env.' prefix added to BRANCH_NAME below:
-            		def currentBranch = env.BRANCH_NAME
-            		def containerName = "app-${currentBranch}-${appName}"
-            		def hostPort = (currentBranch == 'main') ? '8000' : '8001'
+            stage('Deploy') {
+                steps {
+                    script {
+                        // Notice: NO docker.inside block here! We run directly on the host agent.
+                        def currentBranch = env.BRANCH_NAME
+                        def containerName = "app-${currentBranch}-${appName}"
+                        def hostPort = (currentBranch == 'main') ? '8000' : '8001'
 
-            		echo "Deploying ${containerName} to host port ${hostPort}..."
-            		sh "docker stop ${containerName} || true"
-            		sh "docker rm ${containerName} || true"
-            		sh "docker run -d --name ${containerName} -p ${hostPort}:${internalPort} ${appName}:latest"
-		    }
-    	        }
-	    }
+                        echo "Deploying ${containerName} to host port ${hostPort}..."
+                        sh "docker stop ${containerName} || true"
+                        sh "docker rm ${containerName} || true"
+                        sh "docker run -d --name ${containerName} -p ${hostPort}:${internalPort} ${appName}:latest"
+                    }
+                }
+            }
         }
 
         post {
             always {
+                echo 'Cleaning up workspace...'
                 cleanWs()
             }
         }

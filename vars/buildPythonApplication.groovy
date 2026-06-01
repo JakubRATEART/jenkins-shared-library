@@ -27,6 +27,21 @@ def call(Map config = [:]) {
                 }
             }
 
+	    stage('Deploy') {
+    		steps {
+        	    script {
+            		// Notice the 'env.' prefix added to BRANCH_NAME below:
+            		def currentBranch = env.BRANCH_NAME
+            		def containerName = "app-${currentBranch}-${appName}"
+            		def hostPort = (currentBranch == 'main') ? '8000' : '8001'
+
+            		echo "Deploying ${containerName} to host port ${hostPort}..."
+            		sh "docker stop ${containerName} || true"
+            		sh "docker rm ${containerName} || true"
+            		sh "docker run -d --name ${containerName} -p ${hostPort}:${internalPort} ${appName}:latest"
+		    }
+    	        }
+	    }
             stage('Deploy') {
                 steps {
                     script {

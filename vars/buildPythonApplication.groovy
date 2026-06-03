@@ -41,7 +41,8 @@ def call(Map config = [:]) {
 			sh "docker run -d --name ${containerName} -p ${hostPort}:${internalPort} ${appName}:latest"
 			echo "Verifying API availability on port ${hostport}"
 			sh "sleep 5"
-			sh "curl --fail http:/localhosts:${hostPort}/api/status || (docker logs ${containerName} && exit 1)"
+			sh "curl --fail http://localhost:${hostPort}/api/status || (docker logs ${containerName} && exit 1)"
+			
                     }
                 }
             }

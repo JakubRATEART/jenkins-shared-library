@@ -39,7 +39,7 @@ def call(Map config = [:]) {
                         sh "docker stop ${containerName} || true"
                         sh "docker rm ${containerName} || true"
 						sh "docker run -d --name ${containerName} -p ${hostPort}:${internalPort} ${appName}:latest"
-						echo "Verifying API availability on port ${hostport}"
+						echo "Verifying API availability on port ${hostPort}"
 						sh "sleep 5"
 						sh "curl --fail http://localhost:${hostPort}/api/status || (docker logs ${containerName} && exit 1)"
 			
